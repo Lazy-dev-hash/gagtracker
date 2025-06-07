@@ -9,9 +9,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <style>
-        /* --- NEW: Light & Dark Mode Color Themes --- */
         :root {
-            /* Dark Mode (Default) */
             --bg-color: #121212;
             --card-bg: rgba(28, 28, 30, 0.75);
             --navbar-bg: rgba(28, 28, 30, 0.7);
@@ -22,9 +20,9 @@
             --border-color: rgba(255, 255, 255, 0.1);
             --skeleton-color-1: rgba(255, 255, 255, 0.05);
             --skeleton-color-2: rgba(255, 255, 255, 0.08);
+            --border-radius: 16px;
         }
         html.light-mode {
-            /* Light Mode Overrides */
             --bg-color: #F4F6F8;
             --card-bg: rgba(255, 255, 255, 0.75);
             --navbar-bg: rgba(255, 255, 255, 0.7);
@@ -43,8 +41,17 @@
         @keyframes emoji-breathe { 0% { transform: scale(1); } 50% { transform: scale(1.08); } 100% { transform: scale(1); } }
         @keyframes active-glow { from { box-shadow: 0 0 12px -2px var(--accent-color); } to { box-shadow: 0 0 12px 4px var(--accent-color); } }
         @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        
+        /* --- NEW: Pulsing Border Animation --- */
+        @keyframes pulse-border {
+            0%, 100% {
+                box-shadow: 0 0 8px 0px hsla(var(--accent-color-theme-hsl), 0.4), 0 4px 16px var(--shadow-color);
+            }
+            50% {
+                box-shadow: 0 0 16px 4px hsla(var(--accent-color-theme-hsl), 0.7), 0 4px 16px var(--shadow-color);
+            }
+        }
 
-        /* Global Styles & Transitions */
         html {
             transition: background-color 0.4s ease;
             background-color: var(--bg-color);
@@ -56,7 +63,7 @@
             color: var(--text-primary);
             transition: color 0.4s ease;
         }
-        body::before { /* Animated background element */
+        body::before {
             content: '';
             position: fixed;
             top: 0; left: 0; right: 0; bottom: 0;
@@ -71,8 +78,7 @@
         main { max-width: 500px; margin: 0 auto; }
         .content-section { display: none; animation: fadeIn 0.4s ease; }
         .content-section.active { display: block; }
-        
-        /* Widgets & Cards */
+
         .weather-card, .card, .update-notes-card {
             background: var(--card-bg);
             backdrop-filter: blur(12px);
@@ -88,7 +94,7 @@
         .weather-header h1 { margin: 0 0 8px 0; font-size: 1.75rem; font-weight: 700; }
         .weather-header .description { font-size: 1rem; line-height: 1.5; opacity: 0.9; max-width: 40ch; margin: 0 auto; }
         .weather-details { display: grid; grid-template-columns: 1fr; gap: 12px; margin-top: 12px; }
-        .detail-item { background: var(--card-bg); border-radius: 12px; padding: 12px 16px; display: flex; align-items: center; gap: 12px; border: 1px solid var(--border-color); transition: background-color 0.4s ease, border-color 0.4s ease; }
+        .detail-item { background: var(--card-bg); border-radius: 12px; padding: 12px 16px; display: flex; align-items: center; gap: 12px; border: 1px solid var(--border-color); }
         .detail-item i { color: var(--accent-color); font-size: 1.2rem; }
         .detail-item .label { font-weight: 600; font-size: 0.9rem; color: var(--text-primary); }
         .detail-item .value { font-size: 0.9rem; color: var(--text-secondary); }
@@ -102,29 +108,84 @@
         .update-notes-card .new-badge { font-size: 0.7rem; background: var(--accent-color); color: white; padding: 2px 6px; border-radius: 6px; }
 
         .stock-grid { display: grid; grid-template-columns: 1fr; gap: 20px; }
+        
+        .card {
+            border-radius: var(--border-radius);
+            overflow: hidden; 
+             /* --- NEW: Applying the pulsing border animation --- */
+            animation: pulse-border 4s ease-in-out infinite;
+        }
+
         .card.hidden { display: none !important; }
         .card-header { display: flex; align-items: center; gap: 12px; padding: 16px 20px; color: white; background-color: var(--accent-color-theme, var(--text-secondary)); position: relative; border-bottom: 1px solid rgba(255, 255, 255, 0.3); }
         .card-header::after { content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0; background-image: var(--texture); background-size: cover; opacity: 0.08; }
         .card-header i, .card-header h2 { z-index: 1; }
-        .card .items li { padding: 10px 5px; font-weight: 500; border-bottom: 1px solid var(--border-color); transition: background-color 0.2s ease; }
+        .card-content { padding: 16px 20px; }
+        .card .items { list-style: none; margin: 0; padding: 0; }
+        .card .items li { padding: 12px 5px; font-weight: 500; border-bottom: 1px solid var(--border-color); transition: background-color 0.2s ease; }
+        .card .items li:last-of-type { border-bottom: none; }
         .card .items li:hover { background-color: rgba(128, 128, 128, 0.1); }
-        .theme-seeds, .theme-seed_stock { --accent-color-theme: #2E8B57; /* textures etc. */ }
-        .theme-egg_stock { --accent-color-theme: #FFA726; /* ... */ }
-        .theme-honey_stock { --accent-color-theme: #FFB300; /* ... */ }
-        .theme-cosmetics_stock { --accent-color-theme: #EC407A; /* ... */ }
-        .card.theme-seeds .card-header, .card.theme-seed_stock .card-header, .card.theme-egg_stock .card-header, .card.theme-honey_stock .card-header, .card.theme-cosmetics_stock .card-header { background-color: var(--accent-color-theme); }
+        
+        .card-footer {
+            padding-top: 16px;
+            margin-top: 8px;
+            border-top: 1px solid var(--border-color);
+        }
+        .timer-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        .timer-label {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+        .timer-digits {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            background-color: var(--border-color);
+            padding: 3px 8px;
+            border-radius: 6px;
+            font-family: monospace;
+        }
+        .timer-bar-container {
+            width: 100%;
+            height: 6px;
+            background-color: rgba(128, 128, 128, 0.2);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+        .timer-bar-fill {
+            height: 100%;
+            width: 0%; 
+            background-color: var(--accent-color-theme);
+            border-radius: 3px;
+            transition: width 1s linear;
+        }
+       
+        /* --- NEW: Added HSL values for the animation --- */
+        .theme-seeds, .theme-seed_stock { --accent-color-theme: #2E8B57; --accent-color-theme-hsl: 147, 50%, 36%; }
+        .theme-egg, .theme-egg_stock { --accent-color-theme: #FFA726; --accent-color-theme-hsl: 36, 100%, 57%; }
+        .theme-honey, .theme-honey_stock { --accent-color-theme: #FFB300; --accent-color-theme-hsl: 42, 100%, 50%; }
+        .theme-gear { --accent-color-theme: #607D8B; --accent-color-theme-hsl: 200, 18%, 46%; }
+        .theme-cosmetics, .theme-cosmetics_stock { --accent-color-theme: #EC407A; --accent-color-theme-hsl: 340, 82%, 58%; }
+
+        .card.theme-seeds .card-header, .card.theme-seed_stock .card-header, .card.theme-egg .card-header, .card.theme-egg_stock .card-header, .card.theme-honey .card-header, .card.theme-honey_stock .card-header, .card.theme-gear .card-header, .card.theme-cosmetics .card-header, .card.theme-cosmetics_stock .card-header { background-color: var(--accent-color-theme); }
         
         .skeleton { animation: pulse-bg 1.5s infinite; border-radius: var(--border-radius); }
         .skeleton.weather-card { height: 450px; width: 100%; }
         .skeleton.card { height: 200px; width: 100%; }
 
-        .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: var(--navbar-bg); backdrop-filter: blur(12px); border-top: 1px solid var(--border-color); display: flex; justify-content: space-around; padding: 10px 0; z-index: 1000; transition: background-color 0.4s ease, border-color 0.4s ease; }
+        .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: var(--navbar-bg); backdrop-filter: blur(12px); border-top: 1px solid var(--border-color); display: flex; justify-content: space-around; padding: 10px 0; z-index: 1000; }
         .nav-item { display: flex; flex-direction: column; align-items: center; gap: 4px; cursor: pointer; color: var(--text-secondary); transition: all 0.3s ease; font-size: 0.7rem; font-weight: 500; padding: 4px 8px; border-radius: 8px; }
         .nav-item i { font-size: 1.4rem; }
         .nav-item.active { color: var(--accent-color); animation: active-glow 1.5s alternate infinite ease-in-out; }
-        .app-footer { text-align: center; font-size: 0.8rem; color: var(--text-secondary); padding: 40px 20px 0 20px; transition: color 0.4s ease; }
+        .app-footer { text-align: center; font-size: 0.8rem; color: var(--text-secondary); padding: 40px 20px 0 20px; }
 
-        .theme-toggle, .refresh-fab { position: fixed; right: 20px; width: 45px; height: 45px; background: var(--card-bg); color: var(--text-primary); border: 1px solid var(--border-color); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; box-shadow: var(--shadow-soft); cursor: pointer; transition: all 0.3s ease; z-index: 999; }
+        .theme-toggle, .refresh-fab { position: fixed; right: 20px; width: 45px; height: 45px; background: var(--card-bg); color: var(--text-primary); border: 1px solid var(--border-color); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; box-shadow: 0 2px 8px var(--shadow-color); cursor: pointer; transition: all 0.3s ease; z-index: 999; }
         .theme-toggle { top: 20px; }
         .refresh-fab { bottom: 85px; background: var(--accent-color); color: white; border: none; font-size: 1.2rem; }
         .refresh-fab.loading .fa-rotate { animation: spin 1s linear infinite; }
@@ -132,7 +193,6 @@
         .notification { position: fixed; top: 20px; left: 50%; transform: translate(-50%, -150%); display: flex; align-items: center; gap: 10px; padding: 10px 20px; background-color: rgba(40, 40, 40, 0.8); backdrop-filter: blur(10px); color: white; border-radius: 50px; font-size: 0.9rem; font-weight: 500; z-index: 9999; transition: transform 0.4s ease-in-out; }
         .notification.show { transform: translate(-50%, 0); }
         .notification i { color: #34C759; }
-
     </style>
 </head>
 <body>
@@ -147,15 +207,18 @@
         <div id="stockSection" class="content-section">
             <div class="stock-grid" id="stockContainer">
                 <div class="skeleton card"></div>
+                <div class="skeleton card"></div>
+                <div class="skeleton card"></div>
             </div>
         </div>
     </main>
 
-    <footer class="app-footer"><p>&copy; 2025 Sunnel John Rebano | v3.0 Final</p></footer>
+    <footer class="app-footer"><p>&copy; 2025 Sunnel John Rebano | v3.9</p></footer>
 
     <nav class="bottom-nav" id="navbar">
         <div class="nav-item active" data-target="home"><i class="fa-solid fa-house"></i><span>Home</span></div>
-        <div class="nav-item" data-target="seed"><i class="fa-solid fa-seedling"></i><span>Seeds</span></div>
+        <div class="nav-item" data-target="gear"><i class="fa-solid fa-gear"></i><span>Gear</span></div>
+        <div class="nav-item" data-target="seeds"><i class="fa-solid fa-seedling"></i><span>Seeds</span></div>
         <div class="nav-item" data-target="egg"><i class="fa-solid fa-egg"></i><span>Egg</span></div>
         <div class="nav-item" data-target="honey"><i class="fa-solid fa-jar"></i><span>Honey</span></div>
         <div class="nav-item" data-target="cosmetics"><i class="fa-solid fa-wand-magic-sparkles"></i><span>Cosmetics</span></div>
@@ -172,10 +235,10 @@
             const stockSection = document.getElementById('stockSection');
             const notification = document.getElementById('notification');
             const notificationMessage = document.getElementById('notificationMessage');
-            const API_BASE = 'https://growagardenstock.vercel.app/api';
             let currentFilter = 'home';
+            let globalTimerInterval = null;
+            const refreshedOnZero = new Set();
 
-            // --- ESSENTIAL FUNCTION: Theme Management ---
             const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
             let currentTheme = localStorage.getItem('theme') || (prefersDark ? 'dark' : 'light');
 
@@ -195,12 +258,13 @@
                 applyTheme(currentTheme === 'light' ? 'dark' : 'light');
             });
 
-            // --- ESSENTIAL FUNCTION: Core Data Fetching ---
             async function fetchData() {
+                if (refreshBtn.disabled) return;
+
                 refreshBtn.disabled = true;
                 refreshBtn.classList.add('loading');
                 try {
-                    await Promise.all([fetchGameWeather(), fetchStock()]);
+                    await fetchAndRenderAllData();
                     showNotification('Data Refreshed');
                 } catch (error) {
                     console.error("Failed to refresh data:", error);
@@ -211,70 +275,188 @@
                 }
             }
             
-            async function fetchGameWeather() {
-                const response = await fetch(`${API_BASE}/weather`);
-                if (!response.ok) throw new Error('Weather fetch failed');
-                const data = await response.json();
-                renderGameWeather(data);
+            async function fetchAndRenderAllData() {
+                const proxy = 'https://corsproxy.io/?';
+
+                const [
+                    gearSeedRes,
+                    eggRes,
+                    weatherRes,
+                    honeyRes,
+                    cosmeticsRes,
+                ] = await Promise.all([
+                    fetch(`${proxy}https://growagardenstock.com/api/stock?type=gear-seeds`).catch(e => ({ ok: false, e })),
+                    fetch(`${proxy}https://growagardenstock.com/api/stock?type=egg`).catch(e => ({ ok: false, e })),
+                    fetch(`${proxy}https://growagardenstock.com/api/stock/weather`).catch(e => ({ ok: false, e })),
+                    fetch(`${proxy}http://65.108.103.151:22377/api/stocks?type=honeyStock`).catch(e => ({ ok: false, e })),
+                    fetch(`${proxy}https://growagardenstock.com/api/special-stock?type=cosmetics`).catch(e => ({ ok: false, e })),
+                ]);
+
+                const gearSeedData = gearSeedRes.ok ? await gearSeedRes.json() : { gear: [], seeds: [], updatedAt: Date.now() };
+                const eggData = eggRes.ok ? await eggRes.json() : { egg: [], updatedAt: Date.now() };
+                const weatherData = weatherRes.ok ? await weatherRes.json() : {};
+                const honeyData = honeyRes.ok ? await honeyRes.json() : { honeyStock: [] };
+                const cosmeticsData = cosmeticsRes.ok ? await cosmeticsRes.json() : { cosmetics: [], updatedAt: Date.now() };
+                
+                const stockCards = {
+                    gear: {
+                        name: 'Gear',
+                        items: gearSeedData.gear?.map(name => ({ name })) || [],
+                        timerConfig: { type: 'standard', updatedAt: gearSeedData.updatedAt, interval: 300 }
+                    },
+                    seeds: {
+                        name: 'Seeds',
+                        items: gearSeedData.seeds?.map(name => ({ name })) || [],
+                        timerConfig: { type: 'standard', updatedAt: gearSeedData.updatedAt, interval: 300 }
+                    },
+                    egg: {
+                        name: 'Eggs',
+                        items: eggData.egg?.map(name => ({ name })) || [],
+                        timerConfig: { type: 'standard', updatedAt: eggData.updatedAt, interval: 600 }
+                    },
+                    honey: {
+                        name: 'Honey Stock',
+                        items: honeyData.honeyStock || [],
+                        timerConfig: { type: 'honey' }
+                    },
+                    cosmetics: {
+                        name: 'Cosmetics',
+                        items: cosmeticsData.cosmetics?.map(name => ({ name })) || [],
+                        timerConfig: { type: 'standard', updatedAt: cosmeticsData.updatedAt, interval: 14400 }
+                    }
+                };
+
+                renderStock(stockCards);
+                renderGameWeather(weatherData);
             }
 
             function renderGameWeather(data) {
-                const detailsHTML = `
-                    <div class="detail-item"><i class="fa-solid fa-leaf"></i><div><div class="label">Crop Bonus</div><div class="value">${data.cropBonuses}</div></div></div>
-                    <div class="detail-item"><i class="fa-solid fa-gem"></i><div><div class="label">Rarity</div><div class="value">${data.rarity}</div></div></div>
-                    ${(data.mutations && data.mutations.length > 0) ? `<div class="detail-item"><i class="fa-solid fa-dna"></i><div><div class="label">Mutations</div><div class="value">${data.mutations.join(', ')}</div></div></div>` : ''}`;
-            
+                const weatherCardHTML = `
+                    <div class="weather-card">
+                        <div class="weather-header">
+                            <div class="weather-icon">${data.icon || '🌦️'}</div>
+                            <h1>${data.currentWeather || 'Unknown'}</h1>
+                            <p class="description">${data.description || 'Weather data unavailable.'}</p>
+                        </div>
+                        <div class="weather-details">
+                             <div class="detail-item"><i class="fa-solid fa-leaf"></i><div><div class="label">Crop Bonus</div><div class="value">${data.cropBonuses || 'N/A'}</div></div></div>
+                        </div>
+                         <div class="weather-footer"><span>Updated: ${data.updatedAt ? timeAgo(data.updatedAt) : 'N/A'}</span></div>
+                    </div>`;
+
                 const updateNotesHTML = `
                     <div class="update-notes-card">
                         <h2><i class="fa-solid fa-scroll"></i> Latest Updates</h2>
                         <ul>
-                            <li><span class="new-badge">NEW</span> Dark Mode has been added!</li>
-                            <li>Manual refresh button is now available.</li>
-                            <li>Weather panel now shows more details.</li>
+                            <li><span class="new-badge">NEW</span> Added pulsing border animation to cards.</li>
+                            <li>Auto Refresh interval is now 20 seconds.</li>
+                            <li>Smart-refresh when timers hit zero.</li>
+                            <li>Timers are 1:1 with the official script logic.</li>
                         </ul>
                     </div>`;
-
-                const weatherCardHTML = `
-                    <div class="weather-card">
-                        <div class="weather-header"><div class="weather-icon">${data.icon}</div><h1>${data.currentWeather}</h1><p class="description">${data.description}</p></div>
-                        <div class="weather-details">${detailsHTML}</div>
-                        <div class="weather-footer"><span>${timeAgo(data.updatedAt)}</span></div>
-                    </div>
-                    ${updateNotesHTML}`;
-                weatherSection.innerHTML = weatherCardHTML;
+                
+                weatherSection.innerHTML = weatherCardHTML + updateNotesHTML;
             }
 
-            // --- ESSENTIAL FUNCTION: Stock Logic ---
-            async function fetchStock() {
-                const response = await fetch(`${API_BASE}/stock/all`);
-                if (!response.ok) throw new Error('Stock fetch failed');
-                const stocks = await response.json();
-                renderStock(stocks);
-            }
-
-            function renderStock(stocks) {
+            function renderStock(stockCards) {
                 stockContainer.innerHTML = '';
-                Object.keys(stocks).forEach((apiKey, index) => {
-                    const stockItem = stocks[apiKey];
-                    const themeClass = `theme-${apiKey.toLowerCase()}`;
+                const timerData = [];
+
+                Object.keys(stockCards).forEach((key, index) => {
+                    const cardData = stockCards[key];
+                    const themeClass = `theme-${key}`;
                     const card = document.createElement('div');
                     card.className = `card ${themeClass}`;
-                    card.dataset.category = apiKey;
-                    card.style.animation = `fadeIn 0.5s ease-out ${index * 60}ms forwards`;
-                    card.style.opacity = '0';
-                    const itemsHTML = stockItem.items.length > 0 ? stockItem.items.map(item => `<li>${item.name || 'Unknown Item'}</li>`).join('') : '<li>No items in stock</li>';
+                    card.dataset.category = key;
+                    card.style.animationDelay = `${index * 60}ms`;
+
+                    const itemsHTML = cardData.items.length > 0 
+                        ? cardData.items.map(item => `<li>${item.name || 'Unknown Item'} ${item.value ? `: ${item.value}` : ''}</li>`).join('') 
+                        : '<li>No items in stock</li>';
+                    
+                    const timerId = `timer-${key}`;
+                    timerData.push({ id: timerId, config: cardData.timerConfig });
+
                     card.innerHTML = `
-                        <div class="card-header"><i class="fa-solid fa-box"></i><h2>${stockItem.name}</h2></div>
+                        <div class="card-header">
+                            <i class="fa-solid fa-box"></i><h2>${cardData.name}</h2>
+                        </div>
                         <div class="card-content">
                             <ul class="items">${itemsHTML}</ul>
-                            <div class="card-footer"><span>Updated: ${new Date(stockItem.last_updated).toLocaleTimeString()}</span></div>
+                            <div class="card-footer">
+                                <div class="timer-info" id="${timerId}">
+                                    <span class="timer-label">Restocks In</span>
+                                    <span class="timer-digits">--:--:--</span>
+                                </div>
+                                <div class="timer-bar-container">
+                                    <div class="timer-bar-fill"></div>
+                                </div>
+                            </div>
                         </div>`;
                     stockContainer.appendChild(card);
                 });
+
+                startGlobalTimer(timerData);
                 applyFilter(currentFilter);
             }
 
-            // --- ESSENTIAL FUNCTION: Filtering Logic ---
+            function getCountdown(updatedAt, intervalSec) {
+                const now = Date.now();
+                const passed = Math.floor((now - new Date(updatedAt).getTime()) / 1000);
+                const remaining = Math.max(intervalSec - passed, 0);
+                const h = Math.floor(remaining / 3600);
+                const m = Math.floor((remaining % 3600) / 60);
+                const s = remaining % 60;
+                let text = '';
+                if (h > 0) text += `${h}h `;
+                text += `${m}m ${s}s`;
+                const progress = ((intervalSec - remaining) / intervalSec) * 100;
+                return { text, progress, remaining };
+            }
+
+            function getHoneyRestockCountdown() {
+                const now = new Date();
+                const nowPH = new Date(now.toLocaleString("en-US", { timeZone: "Asia/Manila" }));
+                const remainingMinutes = 59 - nowPH.getMinutes();
+                const remainingSeconds = 59 - nowPH.getSeconds();
+                const m = String(remainingMinutes).padStart(2, '0');
+                const s = String(remainingSeconds).padStart(2, '0');
+                const remaining = remainingMinutes * 60 + remainingSeconds;
+                const progress = ((3600 - remaining) / 3600) * 100;
+                return { text: `${m}m ${s}s`, progress, remaining };
+            }
+
+            function startGlobalTimer(timerData) {
+                if (globalTimerInterval) clearInterval(globalTimerInterval);
+                
+                globalTimerInterval = setInterval(() => {
+                    timerData.forEach(item => {
+                        const timerEl = document.getElementById(item.id);
+                        if (!timerEl) return;
+                        
+                        let result;
+                        if (item.config.type === 'honey') {
+                            result = getHoneyRestockCountdown();
+                        } else {
+                            result = getCountdown(item.config.updatedAt, item.config.interval);
+                        }
+                        
+                        timerEl.querySelector('.timer-digits').textContent = result.text;
+                        timerEl.nextElementSibling.querySelector('.timer-bar-fill').style.width = `${result.progress}%`;
+
+                        if (result.remaining === 0 && !refreshedOnZero.has(item.id)) {
+                            refreshedOnZero.add(item.id);
+                            if (!refreshBtn.disabled) {
+                                console.log(`Timer ${item.id} ended. Triggering auto-refresh.`);
+                                fetchData();
+                            }
+                        } else if (result.remaining > 0) {
+                            refreshedOnZero.delete(item.id);
+                        }
+                    });
+                }, 1000);
+            }
+
             function applyFilter(target) {
                 if (target === 'home') {
                     stockSection.classList.remove('active');
@@ -283,47 +465,53 @@
                     weatherSection.classList.remove('active');
                     stockSection.classList.add('active');
                     document.querySelectorAll('.stock-grid .card').forEach(card => {
-                        const isVisible = card.dataset.category.startsWith(target);
+                        const isVisible = card.dataset.category === target;
                         card.classList.toggle('hidden', !isVisible);
                     });
                 }
             }
             
-            // --- ESSENTIAL UTILITY FUNCTIONS ---
-            function showNotification(message, type = 'success') {
+            function showNotification(message) {
                 notificationMessage.textContent = message;
                 notification.classList.add('show');
-                setTimeout(() => {
-                    notification.classList.remove('show');
-                }, 3000);
+                setTimeout(() => { notification.classList.remove('show'); }, 3000);
             }
 
             function timeAgo(timestamp) {
                 const now = new Date();
                 const past = new Date(timestamp);
                 const seconds = Math.floor((now - past) / 1000);
-                if (seconds < 60) return `Updated just now`;
+                if (seconds < 5) return `just now`;
+                if (seconds < 60) return `${seconds}s ago`;
                 const minutes = Math.floor(seconds / 60);
-                if (minutes < 60) return `Updated ${minutes} minute${minutes > 1 ? 's' : ''} ago`;
+                if (minutes < 60) return `${minutes}m ago`;
                 const hours = Math.floor(minutes / 60);
-                return `Updated ${hours} hour${hours > 1 ? 's' : ''} ago`;
+                return `${hours}h ago`;
             }
 
-            // --- ESSENTIAL EVENT LISTENERS ---
             navbar.addEventListener('click', (e) => {
                 const item = e.target.closest('.nav-item');
                 if (!item) return;
-                currentFilter = item.dataset.target;
+                
+                const newFilter = item.dataset.target;
+                currentFilter = newFilter; 
+                
+                if (newFilter === 'home') {
+                     weatherSection.classList.add('active');
+                     stockSection.classList.remove('active');
+                } else {
+                    weatherSection.classList.remove('active');
+                    stockSection.classList.add('active');
+                    applyFilter(currentFilter);
+                }
                 navbar.querySelector('.nav-item.active')?.classList.remove('active');
                 item.classList.add('active');
-                applyFilter(currentFilter);
             });
             refreshBtn.addEventListener('click', fetchData);
 
-            // --- Initial Load ---
             applyTheme(currentTheme);
             fetchData();
-            setInterval(fetchData, 300000); // Auto-refresh every 5 minutes
+            setInterval(fetchData, 20000); // 20-second interval
         });
     </script>
 </body>
