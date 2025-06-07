@@ -1,517 +1,443 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
-    <title>Dashboard</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
-    <style>
-        :root {
-            --bg-color: #121212;
-            --card-bg: rgba(28, 28, 30, 0.75);
-            --navbar-bg: rgba(28, 28, 30, 0.7);
-            --text-primary: #EAEAEA;
-            --text-secondary: #A0A0A0;
-            --accent-color: #0A84FF;
-            --shadow-color: rgba(0, 0, 0, 0.2);
-            --border-color: rgba(255, 255, 255, 0.1);
-            --skeleton-color-1: rgba(255, 255, 255, 0.05);
-            --skeleton-color-2: rgba(255, 255, 255, 0.08);
-            --border-radius: 16px;
-        }
-        html.light-mode {
-            --bg-color: #F4F6F8;
-            --card-bg: rgba(255, 255, 255, 0.75);
-            --navbar-bg: rgba(255, 255, 255, 0.7);
-            --text-primary: #121212;
-            --text-secondary: #555;
-            --accent-color: #007AFF;
-            --shadow-color: rgba(0, 0, 0, 0.07);
-            --border-color: rgba(0, 0, 0, 0.05);
-            --skeleton-color-1: #e9ecef;
-            --skeleton-color-2: #f8f9fa;
-        }
-
-        @keyframes animated-gradient { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
-        @keyframes pulse-bg { 0% { background-color: var(--skeleton-color-1); } 50% { background-color: var(--skeleton-color-2); } 100% { background-color: var(--skeleton-color-1); } }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        @keyframes emoji-breathe { 0% { transform: scale(1); } 50% { transform: scale(1.08); } 100% { transform: scale(1); } }
-        @keyframes active-glow { from { box-shadow: 0 0 12px -2px var(--accent-color); } to { box-shadow: 0 0 12px 4px var(--accent-color); } }
-        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-        
-        @keyframes pulse-border {
-            0%, 100% {
-                box-shadow: 0 0 8px 0px hsla(var(--accent-color-theme-hsl), 0.4), 0 4px 16px var(--shadow-color);
-            }
-            50% {
-                box-shadow: 0 0 16px 4px hsla(var(--accent-color-theme-hsl), 0.7), 0 4px 16px var(--shadow-color);
-            }
-        }
-
-        html {
-            transition: background-color 0.4s ease;
-            background-color: var(--bg-color);
-        }
-        body {
-            font-family: 'Inter', sans-serif;
-            margin: 0;
-            padding: 24px 20px 120px 20px;
-            color: var(--text-primary);
-            transition: color 0.4s ease;
-        }
-        body::before {
-            content: '';
-            position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab);
-            background-size: 400% 400%;
-            animation: animated-gradient 25s ease infinite;
-            z-index: -1;
-            opacity: 0.5;
-            transition: opacity 0.4s ease;
-        }
-        html.light-mode body::before { opacity: 1; }
-        main { max-width: 500px; margin: 0 auto; }
-        .content-section { display: none; animation: fadeIn 0.4s ease; }
-        .content-section.active { display: block; }
-
-        .weather-card, .card, .update-notes-card {
-            background: var(--card-bg);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border: 1px solid var(--border-color);
-            border-radius: var(--border-radius);
-            box-shadow: 0 4px 16px var(--shadow-color);
-            transition: background-color 0.4s ease, border-color 0.4s ease;
-        }
-        .weather-card { padding: 0; background: none; box-shadow: none; border: none; }
-        .weather-header { background: linear-gradient(135deg, #6a82fb 0%, #fc5c7d 100%); border-radius: var(--border-radius); padding: 24px; color: white; box-shadow: 0 10px 25px rgba(106, 130, 251, 0.3); text-align: center; }
-        .weather-header .weather-icon { font-size: 4rem; margin-bottom: 16px; animation: emoji-breathe 4s ease-in-out infinite; display: inline-block; }
-        .weather-header h1 { margin: 0 0 8px 0; font-size: 1.75rem; font-weight: 700; }
-        .weather-header .description { font-size: 1rem; line-height: 1.5; opacity: 0.9; max-width: 40ch; margin: 0 auto; }
-        .weather-details { display: grid; grid-template-columns: 1fr; gap: 12px; margin-top: 12px; }
-        .detail-item { background: var(--card-bg); border-radius: 12px; padding: 12px 16px; display: flex; align-items: center; gap: 12px; border: 1px solid var(--border-color); }
-        .detail-item i { color: var(--accent-color); font-size: 1.2rem; }
-        .detail-item .label { font-weight: 600; font-size: 0.9rem; color: var(--text-primary); }
-        .detail-item .value { font-size: 0.9rem; color: var(--text-secondary); }
-        .weather-footer { text-align: center; font-size: 0.8rem; color: var(--text-secondary); margin-top: 16px; }
-
-        .update-notes-card { margin-top: 20px; padding: 20px; }
-        .update-notes-card h2 { margin: 0 0 12px 0; font-size: 1.2rem; display: flex; align-items: center; gap: 10px; color: var(--text-primary); }
-        .update-notes-card ul { list-style: none; padding: 0; margin: 0; }
-        .update-notes-card li { padding: 8px 0; font-size: 0.95rem; border-bottom: 1px solid var(--border-color); color: var(--text-secondary); }
-        .update-notes-card li:last-child { border-bottom: none; }
-        .update-notes-card .new-badge { font-size: 0.7rem; background: var(--accent-color); color: white; padding: 2px 6px; border-radius: 6px; }
-
-        .stock-grid { display: grid; grid-template-columns: 1fr; gap: 20px; }
-        
-        .card {
-            border-radius: var(--border-radius);
-            overflow: hidden; 
-            animation: pulse-border 4s ease-in-out infinite;
-        }
-
-        .card.hidden { display: none !important; }
-        .card-header { display: flex; align-items: center; gap: 12px; padding: 16px 20px; color: white; background-color: var(--accent-color-theme, var(--text-secondary)); position: relative; border-bottom: 1px solid rgba(255, 255, 255, 0.3); }
-        .card-header::after { content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0; background-image: var(--texture); background-size: cover; opacity: 0.08; }
-        .card-header i, .card-header h2 { z-index: 1; }
-        .card-content { padding: 16px 20px; }
-        .card .items { list-style: none; margin: 0; padding: 0; }
-        .card .items li { padding: 12px 5px; font-weight: 500; border-bottom: 1px solid var(--border-color); transition: background-color 0.2s ease; }
-        .card .items li:last-of-type { border-bottom: none; }
-        .card .items li:hover { background-color: rgba(128, 128, 128, 0.1); }
-        
-        .card-footer {
-            padding-top: 16px;
-            margin-top: 8px;
-            border-top: 1px solid var(--border-color);
-        }
-        .timer-info {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 8px;
-        }
-        .timer-label {
-            font-size: 0.8rem;
-            color: var(--text-secondary);
-            font-weight: 500;
-        }
-        .timer-digits {
-            font-size: 0.9rem;
-            font-weight: 600;
-            color: var(--text-primary);
-            background-color: var(--border-color);
-            padding: 3px 8px;
-            border-radius: 6px;
-            font-family: monospace;
-        }
-        .timer-bar-container {
-            width: 100%;
-            height: 6px;
-            background-color: rgba(128, 128, 128, 0.2);
-            border-radius: 3px;
-            overflow: hidden;
-        }
-        .timer-bar-fill {
-            height: 100%;
-            width: 0%; 
-            background-color: var(--accent-color-theme);
-            border-radius: 3px;
-            transition: width 1s linear;
-        }
-       
-        .theme-seeds, .theme-seed_stock { --accent-color-theme: #2E8B57; --accent-color-theme-hsl: 147, 50%, 36%; }
-        .theme-egg, .theme-egg_stock { --accent-color-theme: #FFA726; --accent-color-theme-hsl: 36, 100%, 57%; }
-        .theme-honey, .theme-honey_stock { --accent-color-theme: #FFB300; --accent-color-theme-hsl: 42, 100%, 50%; }
-        .theme-gear { --accent-color-theme: #607D8B; --accent-color-theme-hsl: 200, 18%, 46%; }
-        .theme-cosmetics, .theme-cosmetics_stock { --accent-color-theme: #EC407A; --accent-color-theme-hsl: 340, 82%, 58%; }
-
-        .card.theme-seeds .card-header, .card.theme-seed_stock .card-header, .card.theme-egg .card-header, .card.theme-egg_stock .card-header, .card.theme-honey .card-header, .card.theme-honey_stock .card-header, .card.theme-gear .card-header, .card.theme-cosmetics .card-header, .card.theme-cosmetics_stock .card-header { background-color: var(--accent-color-theme); }
-        
-        .skeleton { animation: pulse-bg 1.5s infinite; border-radius: var(--border-radius); }
-        .skeleton.weather-card { height: 450px; width: 100%; }
-        .skeleton.card { height: 200px; width: 100%; }
-
-        .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: var(--navbar-bg); backdrop-filter: blur(12px); border-top: 1px solid var(--border-color); display: flex; justify-content: space-around; padding: 10px 0; z-index: 1000; }
-        .nav-item { display: flex; flex-direction: column; align-items: center; gap: 4px; cursor: pointer; color: var(--text-secondary); transition: all 0.3s ease; font-size: 0.7rem; font-weight: 500; padding: 4px 8px; border-radius: 8px; }
-        .nav-item i { font-size: 1.4rem; }
-        .nav-item.active { color: var(--accent-color); animation: active-glow 1.5s alternate infinite ease-in-out; }
-        .app-footer { text-align: center; font-size: 0.8rem; color: var(--text-secondary); padding: 40px 20px 0 20px; }
-
-        .theme-toggle, .refresh-fab { position: fixed; right: 20px; width: 45px; height: 45px; background: var(--card-bg); color: var(--text-primary); border: 1px solid var(--border-color); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; box-shadow: 0 2px 8px var(--shadow-color); cursor: pointer; transition: all 0.3s ease; z-index: 999; }
-        .theme-toggle { top: 20px; }
-        .refresh-fab { bottom: 85px; background: var(--accent-color); color: white; border: none; font-size: 1.2rem; }
-        .refresh-fab.loading .fa-rotate { animation: spin 1s linear infinite; }
-        .refresh-fab:disabled { background-color: #999; cursor: not-allowed; transform: scale(1); }
-        .notification { position: fixed; top: 20px; left: 50%; transform: translate(-50%, -150%); display: flex; align-items: center; gap: 10px; padding: 10px 20px; background-color: rgba(40, 40, 40, 0.8); backdrop-filter: blur(10px); color: white; border-radius: 50px; font-size: 0.9rem; font-weight: 500; z-index: 9999; transition: transform 0.4s ease-in-out; }
-        .notification.show { transform: translate(-50%, 0); }
-        .notification i { color: #34C759; }
-    </style>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+    <title>Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <style>
+        :root {
+            --bg-color: #121212;
+            --card-bg: rgba(28, 28, 30, 0.75);
+            --navbar-bg: rgba(28, 28, 30, 0.7);
+            --text-primary: #EAEAEA;
+            --text-secondary: #A0A0A0;
+            --accent-color: #0A84FF;
+            --shadow-color: rgba(0, 0, 0, 0.2);
+            --border-color: rgba(255, 255, 255, 0.1);
+            --border-radius: 16px;
+        }
+        html.light-mode {
+            --bg-color: #F4F6F8;
+            --card-bg: rgba(255, 255, 255, 0.75);
+            --navbar-bg: rgba(255, 255, 255, 0.7);
+            --text-primary: #121212;
+            --text-secondary: #555;
+            --accent-color: #007AFF;
+            --shadow-color: rgba(0, 0, 0, 0.07);
+            --border-color: rgba(0, 0, 0, 0.05);
+        }
+        @keyframes animated-gradient { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+        @keyframes pulse-bg { 0% { background-color: var(--skeleton-color-1); } 50% { background-color: var(--skeleton-color-2); } 100% { background-color: var(--skeleton-color-1); } }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes active-glow { from { box-shadow: 0 0 12px -2px var(--accent-color); } to { box-shadow: 0 0 12px 4px var(--accent-color); } }
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        
+        @keyframes pulse-border {
+            0%, 100% { box-shadow: 0 0 8px 0px hsla(var(--accent-color-theme-hsl), 0.4), 0 4px 16px var(--shadow-color); }
+            50% { box-shadow: 0 0 16px 4px hsla(var(--accent-color-theme-hsl), 0.7), 0 4px 16px var(--shadow-color); }
+        }
+        html {
+            transition: background-color 0.4s ease;
+            background-color: var(--bg-color);
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding: 24px 20px 120px 20px;
+            color: var(--text-primary);
+            transition: color 0.4s ease;
+        }
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab);
+            background-size: 400% 400%;
+            animation: animated-gradient 25s ease infinite;
+            z-index: -1;
+            opacity: 0.5;
+            transition: opacity 0.4s ease;
+        }
+        html.light-mode body::before { opacity: 1; }
+        main { max-width: 500px; margin: 0 auto; }
+        .content-section { display: none; animation: fadeIn 0.4s ease; }
+        .content-section.active { display: block; }
+        .weather-card, .card, .update-notes-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            box-shadow: 0 4px 16px var(--shadow-color);
+            transition: background-color 0.4s ease, border-color 0.4s ease, box-shadow 0.3s ease;
+        }
+        .weather-card { 
+            padding: 20px; 
+            animation: pulse-border 4s ease-in-out infinite; 
+            --accent-color-theme-hsl: 210, 80%, 60%; 
+        }
+        .weather-header h1 { 
+            margin: 0; 
+            font-size: 1.75rem; 
+            font-weight: 700; 
+            display: flex; 
+            align-items: center; 
+            gap: 12px;
+        }
+        .weather-header .weather-icon { font-size: 2rem; }
+        .weather-details { 
+            margin-top: 16px; 
+            display: grid; 
+            grid-template-columns: 1fr; 
+            gap: 8px; 
+            font-size: 0.95rem; 
+            line-height: 1.6; 
+            color: var(--text-secondary);
+        }
+        .weather-details strong { color: var(--text-primary); font-weight: 600; }
+        
+        .update-notes-card { margin-top: 20px; padding: 20px; }
+        .update-notes-card h2 { margin: 0 0 12px 0; font-size: 1.2rem; display: flex; align-items: center; gap: 10px; color: var(--text-primary); }
+        .update-notes-card ul { list-style: none; padding: 0; margin: 0; }
+        .update-notes-card li { padding: 8px 0; font-size: 0.95rem; border-bottom: 1px solid var(--border-color); color: var(--text-secondary); }
+        .update-notes-card li:last-child { border-bottom: none; }
+        .update-notes-card strong { color: var(--text-primary); }
+        .stock-grid { display: grid; grid-template-columns: 1fr; gap: 20px; }
+        
+        .card {
+            border-radius: var(--border-radius);
+            overflow: hidden; 
+            animation: pulse-border 4s ease-in-out infinite;
+        }
+        .card.hidden { display: none !important; }
+        .card-header { 
+            display: flex; 
+            align-items: center; 
+            justify-content: space-between;
+            gap: 12px; 
+            padding: 16px 20px; 
+            color: white; 
+            background-color: var(--accent-color-theme, var(--text-secondary)); 
+            position: relative; 
+            border-bottom: 1px solid rgba(255, 255, 255, 0.3); 
+        }
+        .card-header h2 { display: flex; align-items: center; gap: 8px; margin: 0; font-size: 1.2rem;}
+        .card-header::after { content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0; background-image: var(--texture); background-size: cover; opacity: 0.08; }
+        .card-header h2 { z-index: 1; }
+        .card-content { padding: 16px 20px; }
+        .card .items { 
+            list-style: none; 
+            margin: 0; 
+            padding: 0; 
+            font-family: monospace;
+            font-size: 0.9rem;
+        }
+        .card .items li { 
+            padding: 8px 0; 
+            border-bottom: 1px solid var(--border-color); 
+        }
+        .card .items li:last-of-type { border-bottom: none; }
+        .timer-container {
+            margin-top: 16px;
+            padding-top: 12px;
+            border-top: 1px solid var(--border-color);
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            font-family: monospace;
+            font-weight: 600;
+        }
+       
+        .theme-seeds, .theme-seedsStock { --accent-color-theme: #2E8B57; --accent-color-theme-hsl: 147, 50%, 36%; }
+        .theme-egg, .theme-eggStock { --accent-color-theme: #FFA726; --accent-color-theme-hsl: 36, 100%, 57%; }
+        .theme-honey, .theme-honeyStock { --accent-color-theme: #FFB300; --accent-color-theme-hsl: 42, 100%, 50%; }
+        .theme-gear, .theme-gearStock { --accent-color-theme: #607D8B; --accent-color-theme-hsl: 200, 18%, 46%; }
+        .theme-cosmetics, .theme-cosmeticsStock { --accent-color-theme: #EC407A; --accent-color-theme-hsl: 340, 82%, 58%; }
+        .card-header { background-color: var(--accent-color-theme); }
+        
+        .skeleton { animation: pulse-bg 1.5s infinite; border-radius: var(--border-radius); }
+        .skeleton.weather-card { height: 280px; width: 100%; }
+        .skeleton.card { height: 200px; width: 100%; }
+        .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: var(--navbar-bg); backdrop-filter: blur(12px); border-top: 1px solid var(--border-color); display: flex; justify-content: space-around; padding: 10px 0; z-index: 1000; }
+        .nav-item { display: flex; flex-direction: column; align-items: center; gap: 4px; cursor: pointer; color: var(--text-secondary); transition: all 0.3s ease; font-size: 0.7rem; font-weight: 500; padding: 4px 8px; border-radius: 8px; }
+        .nav-item i { font-size: 1.4rem; }
+        .nav-item.active { color: var(--accent-color); animation: active-glow 1.5s alternate infinite ease-in-out; }
+        .app-footer { text-align: center; font-size: 0.8rem; color: var(--text-secondary); padding: 40px 20px 0 20px; }
+        .theme-toggle, .refresh-fab { position: fixed; right: 20px; width: 45px; height: 45px; background: var(--card-bg); color: var(--text-primary); border: 1px solid var(--border-color); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; box-shadow: 0 2px 8px var(--shadow-color); cursor: pointer; transition: all 0.3s ease; z-index: 999; }
+        .theme-toggle { top: 20px; }
+        .refresh-fab { bottom: 85px; background: var(--accent-color); color: white; border: none; font-size: 1.2rem; }
+        .refresh-fab.loading .fa-rotate { animation: spin 1s linear infinite; }
+        .refresh-fab:disabled { background-color: #999; cursor: not-allowed; transform: scale(1); }
+        .notification { position: fixed; top: 20px; left: 50%; transform: translate(-50%, -150%); display: flex; align-items: center; gap: 10px; padding: 10px 20px; background-color: rgba(40, 40, 40, 0.8); backdrop-filter: blur(10px); color: white; border-radius: 50px; font-size: 0.9rem; font-weight: 500; z-index: 9999; transition: transform 0.4s ease-in-out; }
+        .notification.show { transform: translate(-50%, 0); }
+        .notification i { color: #34C759; }
+    </style>
 </head>
 <body>
-    <div id="notification" class="notification"><i id="notificationIcon" class="fa-solid fa-check-circle"></i><span id="notificationMessage"></span></div>
-    <button class="theme-toggle" id="themeToggleBtn" aria-label="Toggle Theme"></button>
-    <button class="refresh-fab" id="refreshBtn" aria-label="Refresh Data"><i class="fa-solid fa-rotate"></i></button>
-
-    <main>
-        <div id="weatherSection" class="content-section active">
-            <div class="skeleton weather-card"></div>
-        </div>
-        <div id="stockSection" class="content-section">
-            <div class="stock-grid" id="stockContainer">
-                <div class="skeleton card"></div>
-                <div class="skeleton card"></div>
-                <div class="skeleton card"></div>
-            </div>
-        </div>
-    </main>
-
-    <footer class="app-footer"><p>&copy; 2025 Sunnel John Rebano | v3.9.1</p></footer>
-
-    <nav class="bottom-nav" id="navbar">
-        <div class="nav-item active" data-target="home"><i class="fa-solid fa-house"></i><span>Home</span></div>
-        <div class="nav-item" data-target="gear"><i class="fa-solid fa-gear"></i><span>Gear</span></div>
-        <div class="nav-item" data-target="seeds"><i class="fa-solid fa-seedling"></i><span>Seeds</span></div>
-        <div class="nav-item" data-target="egg"><i class="fa-solid fa-egg"></i><span>Egg</span></div>
-        <div class="nav-item" data-target="honey"><i class="fa-solid fa-jar"></i><span>Honey</span></div>
-        <div class="nav-item" data-target="cosmetics"><i class="fa-solid fa-wand-magic-sparkles"></i><span>Cosmetics</span></div>
-    </nav>
-
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const docElement = document.documentElement;
-            const themeToggleBtn = document.getElementById('themeToggleBtn');
-            const refreshBtn = document.getElementById('refreshBtn');
-            const navbar = document.getElementById('navbar');
-            const stockContainer = document.getElementById('stockContainer');
-            const weatherSection = document.getElementById('weatherSection');
-            const stockSection = document.getElementById('stockSection');
-            const notification = document.getElementById('notification');
-            const notificationMessage = document.getElementById('notificationMessage');
-            let currentFilter = 'home';
-            let globalTimerInterval = null;
-            const refreshedOnZero = new Set();
-
-            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-            let currentTheme = localStorage.getItem('theme') || (prefersDark ? 'dark' : 'light');
-
-            function applyTheme(theme) {
-                localStorage.setItem('theme', theme);
-                currentTheme = theme;
-                if (theme === 'light') {
-                    docElement.classList.add('light-mode');
-                    themeToggleBtn.innerHTML = '<i class="fa-solid fa-moon"></i>';
-                } else {
-                    docElement.classList.remove('light-mode');
-                    themeToggleBtn.innerHTML = '<i class="fa-solid fa-sun"></i>';
-                }
-            }
-
-            themeToggleBtn.addEventListener('click', () => {
-                applyTheme(currentTheme === 'light' ? 'dark' : 'light');
-            });
-
-            async function fetchData() {
-                if (refreshBtn.disabled) return;
-
-                refreshBtn.disabled = true;
-                refreshBtn.classList.add('loading');
-                try {
-                    await fetchAndRenderAllData();
-                    showNotification('Data Refreshed');
-                } catch (error) {
-                    console.error("Failed to refresh data:", error);
-                    showNotification('Failed to refresh data', 'error');
-                } finally {
-                    refreshBtn.disabled = false;
-                    refreshBtn.classList.remove('loading');
-                }
-            }
-            
-            async function fetchAndRenderAllData() {
-                const proxy = 'https://corsproxy.io/?';
-
-                // --- MODIFIED: Swapped Honey source for reliability ---
-                const [
-                    gearSeedRes,
-                    eggRes,
-                    weatherRes,
-                    allStockRes, // Using this for Honey
-                    cosmeticsRes,
-                ] = await Promise.all([
-                    fetch(`${proxy}https://growagardenstock.com/api/stock?type=gear-seeds`).catch(e => ({ ok: false, e })),
-                    fetch(`${proxy}https://growagardenstock.com/api/stock?type=egg`).catch(e => ({ ok: false, e })),
-                    fetch(`${proxy}https://growagardenstock.com/api/stock/weather`).catch(e => ({ ok: false, e })),
-                    fetch(`https://growagardenstock.vercel.app/api/stock/all`).catch(e => ({ ok: false, e })),
-                    fetch(`${proxy}https://growagardenstock.com/api/special-stock?type=cosmetics`).catch(e => ({ ok: false, e })),
-                ]);
-
-                const gearSeedData = gearSeedRes.ok ? await gearSeedRes.json() : { gear: [], seeds: [], updatedAt: Date.now() };
-                const eggData = eggRes.ok ? await eggRes.json() : { egg: [], updatedAt: Date.now() };
-                const weatherData = weatherRes.ok ? await weatherRes.json() : {};
-                const allStockData = allStockRes.ok ? await allStockRes.json() : {}; // Parse honey source
-                const cosmeticsData = cosmeticsRes.ok ? await cosmeticsRes.json() : { cosmetics: [], updatedAt: Date.now() };
-                
-                const stockCards = {
-                    gear: {
-                        name: 'Gear',
-                        items: gearSeedData.gear?.map(name => ({ name })) || [],
-                        timerConfig: { type: 'standard', updatedAt: gearSeedData.updatedAt, interval: 300 }
-                    },
-                    seeds: {
-                        name: 'Seeds',
-                        items: gearSeedData.seeds?.map(name => ({ name })) || [],
-                        timerConfig: { type: 'standard', updatedAt: gearSeedData.updatedAt, interval: 300 }
-                    },
-                    egg: {
-                        name: 'Eggs',
-                        items: eggData.egg?.map(name => ({ name })) || [],
-                        timerConfig: { type: 'standard', updatedAt: eggData.updatedAt, interval: 600 }
-                    },
-                    honey: {
-                        name: 'Honey Stock',
-                        // --- MODIFIED: Get honey items from the reliable source ---
-                        items: allStockData.honey_stock?.items || [],
-                        timerConfig: { type: 'honey' }
-                    },
-                    cosmetics: {
-                        name: 'Cosmetics',
-                        items: cosmeticsData.cosmetics?.map(name => ({ name })) || [],
-                        timerConfig: { type: 'standard', updatedAt: cosmeticsData.updatedAt, interval: 14400 }
-                    }
-                };
-
-                renderStock(stockCards);
-                renderGameWeather(weatherData);
-            }
-
-            function renderGameWeather(data) {
-                const weatherCardHTML = `
-                    <div class="weather-card">
-                        <div class="weather-header">
-                            <div class="weather-icon">${data.icon || '🌦️'}</div>
-                            <h1>${data.currentWeather || 'Unknown'}</h1>
-                            <p class="description">${data.description || 'Weather data unavailable.'}</p>
-                        </div>
-                        <div class="weather-details">
-                             <div class="detail-item"><i class="fa-solid fa-leaf"></i><div><div class="label">Crop Bonus</div><div class="value">${data.cropBonuses || 'N/A'}</div></div></div>
-                        </div>
-                         <div class="weather-footer"><span>Updated: ${data.updatedAt ? timeAgo(data.updatedAt) : 'N/A'}</span></div>
-                    </div>`;
-
-                const updateNotesHTML = `
-                    <div class="update-notes-card">
-                        <h2><i class="fa-solid fa-scroll"></i> Latest Updates</h2>
-                        <ul>
-                            <li><span class="new-badge">FIX</span> Switched Honey data source for better reliability.</li>
-                            <li>Pulsing border animation on all stock cards.</li>
-                            <li>Auto Refresh interval is 20 seconds.</li>
-                            <li>Smart-refresh when timers hit zero.</li>
-                        </ul>
-                    </div>`;
-                
-                weatherSection.innerHTML = weatherCardHTML + updateNotesHTML;
-            }
-
-            function renderStock(stockCards) {
-                stockContainer.innerHTML = '';
-                const timerData = [];
-
-                Object.keys(stockCards).forEach((key, index) => {
-                    const cardData = stockCards[key];
-                    const themeClass = `theme-${key}`;
-                    const card = document.createElement('div');
-                    card.className = `card ${themeClass}`;
-                    card.dataset.category = key;
-                    card.style.animationDelay = `${index * 60}ms`;
-
-                    const itemsHTML = cardData.items.length > 0 
-                        ? cardData.items.map(item => `<li>${item.name || 'Unknown Item'} ${item.value ? `: ${item.value}` : ''}</li>`).join('') 
-                        : '<li>No items in stock</li>';
-                    
-                    const timerId = `timer-${key}`;
-                    timerData.push({ id: timerId, config: cardData.timerConfig });
-
-                    card.innerHTML = `
-                        <div class="card-header">
-                            <i class="fa-solid fa-box"></i><h2>${cardData.name}</h2>
-                        </div>
-                        <div class="card-content">
-                            <ul class="items">${itemsHTML}</ul>
-                            <div class="card-footer">
-                                <div class="timer-info" id="${timerId}">
-                                    <span class="timer-label">Restocks In</span>
-                                    <span class="timer-digits">--:--:--</span>
-                                </div>
-                                <div class="timer-bar-container">
-                                    <div class="timer-bar-fill"></div>
-                                </div>
-                            </div>
-                        </div>`;
-                    stockContainer.appendChild(card);
-                });
-
-                startGlobalTimer(timerData);
-                applyFilter(currentFilter);
-            }
-
-            function getCountdown(updatedAt, intervalSec) {
-                const now = Date.now();
-                const passed = Math.floor((now - new Date(updatedAt).getTime()) / 1000);
-                const remaining = Math.max(intervalSec - passed, 0);
-                const h = Math.floor(remaining / 3600);
-                const m = Math.floor((remaining % 3600) / 60);
-                const s = remaining % 60;
-                let text = '';
-                if (h > 0) text += `${h}h `;
-                text += `${m}m ${s}s`;
-                const progress = ((intervalSec - remaining) / intervalSec) * 100;
-                return { text, progress, remaining };
-            }
-
-            function getHoneyRestockCountdown() {
-                const now = new Date();
-                const nowPH = new Date(now.toLocaleString("en-US", { timeZone: "Asia/Manila" }));
-                const remainingMinutes = 59 - nowPH.getMinutes();
-                const remainingSeconds = 59 - nowPH.getSeconds();
-                const m = String(remainingMinutes).padStart(2, '0');
-                const s = String(remainingSeconds).padStart(2, '0');
-                const remaining = remainingMinutes * 60 + remainingSeconds;
-                const progress = ((3600 - remaining) / 3600) * 100;
-                return { text: `${m}m ${s}s`, progress, remaining };
-            }
-
-            function startGlobalTimer(timerData) {
-                if (globalTimerInterval) clearInterval(globalTimerInterval);
-                
-                globalTimerInterval = setInterval(() => {
-                    timerData.forEach(item => {
-                        const timerEl = document.getElementById(item.id);
-                        if (!timerEl) return;
-                        
-                        let result;
-                        if (item.config.type === 'honey') {
-                            result = getHoneyRestockCountdown();
-                        } else {
-                            result = getCountdown(item.config.updatedAt, item.config.interval);
-                        }
-                        
-                        timerEl.querySelector('.timer-digits').textContent = result.text;
-                        timerEl.nextElementSibling.querySelector('.timer-bar-fill').style.width = `${result.progress}%`;
-
-                        if (result.remaining === 0 && !refreshedOnZero.has(item.id)) {
-                            refreshedOnZero.add(item.id);
-                            if (!refreshBtn.disabled) {
-                                console.log(`Timer ${item.id} ended. Triggering auto-refresh.`);
-                                fetchData();
-                            }
-                        } else if (result.remaining > 0) {
-                            refreshedOnZero.delete(item.id);
-                        }
-                    });
-                }, 1000);
-            }
-
-            function applyFilter(target) {
-                if (target === 'home') {
-                    stockSection.classList.remove('active');
-                    weatherSection.classList.add('active');
-                } else {
-                    weatherSection.classList.remove('active');
-                    stockSection.classList.add('active');
-                    document.querySelectorAll('.stock-grid .card').forEach(card => {
-                        const isVisible = card.dataset.category === target;
-                        card.classList.toggle('hidden', !isVisible);
-                    });
-                }
-            }
-            
-            function showNotification(message) {
-                notificationMessage.textContent = message;
-                notification.classList.add('show');
-                setTimeout(() => { notification.classList.remove('show'); }, 3000);
-            }
-
-            function timeAgo(timestamp) {
-                const now = new Date();
-                const past = new Date(timestamp);
-                const seconds = Math.floor((now - past) / 1000);
-                if (seconds < 5) return `just now`;
-                if (seconds < 60) return `${seconds}s ago`;
-                const minutes = Math.floor(seconds / 60);
-                if (minutes < 60) return `${minutes}m ago`;
-                const hours = Math.floor(minutes / 60);
-                return `${hours}h ago`;
-            }
-
-            navbar.addEventListener('click', (e) => {
-                const item = e.target.closest('.nav-item');
-                if (!item) return;
-                
-                const newFilter = item.dataset.target;
-                currentFilter = newFilter; 
-                
-                if (newFilter === 'home') {
-                     weatherSection.classList.add('active');
-                     stockSection.classList.remove('active');
-                } else {
-                    weatherSection.classList.remove('active');
-                    stockSection.classList.add('active');
-                    applyFilter(currentFilter);
-                }
-                navbar.querySelector('.nav-item.active')?.classList.remove('active');
-                item.classList.add('active');
-            });
-            refreshBtn.addEventListener('click', fetchData);
-
-            applyTheme(currentTheme);
-            fetchData();
-            setInterval(fetchData, 20000);
-        });
-    </script>
+    <div id="notification" class="notification"><i id="notificationIcon" class="fa-solid fa-check-circle"></i><span id="notificationMessage"></span></div>
+    <button class="theme-toggle" id="themeToggleBtn" aria-label="Toggle Theme"></button>
+    <button class="refresh-fab" id="refreshBtn" aria-label="Refresh Data"><i class="fa-solid fa-rotate"></i></button>
+    <main>
+        <div id="weatherSection" class="content-section active">
+            <div class="skeleton weather-card"></div>
+        </div>
+        <div id="stockSection" class="content-section">
+            <div class="stock-grid" id="stockContainer">
+                <div class="skeleton card"></div>
+            </div>
+        </div>
+    </main>
+    <footer class="app-footer"><p>&copy; 2025 Sunnel John Rebano | v5.3</p></footer>
+    <nav class="bottom-nav" id="navbar">
+        <div class="nav-item active" data-target="home"><i class="fa-solid fa-house"></i><span>Home</span></div>
+        <div class="nav-item" data-target="gearStock"><i class="fa-solid fa-gear"></i><span>Gear</span></div>
+        <div class="nav-item" data-target="seedsStock"><i class="fa-solid fa-seedling"></i><span>Seeds</span></div>
+        <div class="nav-item" data-target="eggStock"><i class="fa-solid fa-egg"></i><span>Egg</span></div>
+        <div class="nav-item" data-target="honeyStock"><i class="fa-solid fa-jar"></i><span>Honey</span></div>
+        <div class="nav-item" data-target="cosmeticsStock"><i class="fa-solid fa-wand-magic-sparkles"></i><span>Cosmetics</span></div>
+    </nav>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const docElement = document.documentElement;
+            const themeToggleBtn = document.getElementById('themeToggleBtn');
+            const refreshBtn = document.getElementById('refreshBtn');
+            const navbar = document.getElementById('navbar');
+            const stockContainer = document.getElementById('stockContainer');
+            const weatherSection = document.getElementById('weatherSection');
+            const stockSection = document.getElementById('stockSection');
+            const notification = document.getElementById('notification');
+            const notificationMessage = document.getElementById('notificationMessage');
+            let currentFilter = 'home';
+            let globalTimerInterval = null;
+            const PH_OFFSET = 8 * 60 * 60 * 1000;
+            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            let currentTheme = localStorage.getItem('theme') || (prefersDark ? 'dark' : 'light');
+            function applyTheme(theme) {
+                localStorage.setItem('theme', theme);
+                currentTheme = theme;
+                if (theme === 'light') {
+                    docElement.classList.add('light-mode');
+                    themeToggleBtn.innerHTML = '<i class="fa-solid fa-moon"></i>';
+                } else {
+                    docElement.classList.remove('light-mode');
+                    themeToggleBtn.innerHTML = '<i class="fa-solid fa-sun"></i>';
+                }
+            }
+            themeToggleBtn.addEventListener('click', () => {
+                applyTheme(currentTheme === 'light' ? 'dark' : 'light');
+            });
+            async function fetchData() {
+                if (refreshBtn.disabled) return;
+                refreshBtn.disabled = true;
+                refreshBtn.classList.add('loading');
+                try {
+                    await fetchAndRenderAllData();
+                    showNotification('Data Refreshed');
+                } catch (error) {
+                    console.error("Failed to refresh data:", error);
+                    showNotification('Failed to refresh data', 'error');
+                } finally {
+                    refreshBtn.disabled = false;
+                    refreshBtn.classList.remove('loading');
+                }
+            }
+            
+            async function fetchAndRenderAllData() {
+                const proxy = 'https://corsproxy.io/?';
+                let stockData = {};
+                let weatherData = {};
+                try {
+                    const primaryStockRes = await fetch(`${proxy}http://65.108.103.151:22377/api/stocks?type=all`);
+                    if (!primaryStockRes.ok) throw new Error('Primary API failed');
+                    const primaryData = await primaryStockRes.json();
+                    if (Object.keys(primaryData).length > 0 && primaryData.gearStock) {
+                        stockData = primaryData;
+                    } else {
+                        throw new Error('Primary API returned invalid data');
+                    }
+                } catch (e) {
+                    console.warn("Primary API failed, attempting fallback...", e.message);
+                    const [fallbackGearSeedRes, fallbackEggRes, fallbackHoneyRes, fallbackCosmeticsRes] = await Promise.all([
+                        fetch(`${proxy}https://growagardenstock.com/api/stock?type=gear-seeds`).catch(err => ({ ok: false })),
+                        fetch(`${proxy}https://growagardenstock.com/api/stock?type=egg`).catch(err => ({ ok: false })),
+                        fetch(`https://growagardenstock.vercel.app/api/stock/all`).catch(err => ({ ok: false })),
+                        fetch(`${proxy}https://growagardenstock.com/api/special-stock?type=cosmetics`).catch(err => ({ ok: false }))
+                    ]);
+                    const gearSeed = fallbackGearSeedRes.ok ? await fallbackGearSeedRes.json() : {};
+                    const egg = fallbackEggRes.ok ? await fallbackEggRes.json() : {};
+                    const honey = fallbackHoneyRes.ok ? await fallbackHoneyRes.json() : {};
+                    const cosmetics = fallbackCosmeticsRes.ok ? await fallbackCosmeticsRes.json() : {};
+                    stockData = {
+                        gearStock: (gearSeed.gear || []).map(name => ({ name })),
+                        seedsStock: (gearSeed.seeds || []).map(name => ({ name })),
+                        eggStock: (egg.egg || []).map(name => ({ name })),
+                        honeyStock: honey.honey_stock?.items || [],
+                        cosmeticsStock: (cosmetics.cosmetics || []).map(name => ({ name }))
+                    };
+                }
+                const weatherRes = await fetch(`${proxy}https://growagardenstock.com/api/stock/weather`).catch(e => ({ ok: false }));
+                weatherData = weatherRes.ok ? await weatherRes.json() : {};
+                
+                renderStock(stockData);
+                renderGameWeather(weatherData);
+                startOrUpdateGlobalTimer();
+            }
+            function renderGameWeather(data) {
+                const weatherHTML = `
+                    <div class="weather-header">
+                         <h1><span class="weather-icon">${data.icon || '🌦️'}</span> ${data.currentWeather || 'Unknown'}</h1>
+                    </div>
+                    <div class="weather-details">
+                        <p><strong>📖 Description:</strong> ${data.description || 'N/A'}</p>
+                        <p><strong>📌 Effect:</strong> ${data.effectDescription || 'N/A'}</p>
+                        <p><strong>🪄 Crop Bonus:</strong> ${data.cropBonuses || 'N/A'}</p>
+                        <p><strong>📢 Visual Cue:</strong> ${data.visualCue || 'N/A'}</p>
+                        <p><strong>🌟 Rarity:</strong> ${data.rarity || 'N/A'}</p>
+                    </div>`;
+                const updateNotesHTML = `
+                    <div class="update-notes-card">
+                        <h2><i class="fa-solid fa-scroll"></i> 🆕 𝗪𝗛𝗔𝗧'𝗦 𝗡𝗘𝗪:</h2>
+                        <ul>
+                            <li><strong>- Critical Bug Fix!</strong> Stock items will now always display using a fallback API if the primary source is down.</li>
+                            <li><strong>- Redesigned UI</strong> to perfectly match the tracker script aesthetic.</li>
+                        </ul>
+                    </div>`;
+                
+                weatherSection.innerHTML = `<div class="weather-card">${weatherHTML}</div>` + updateNotesHTML;
+            }
+            
+            // --- FIXED: Safely handles potentially undefined values ---
+            function formatValue(val) {
+                if (val === undefined || val === null || val === 'N/A') return '';
+                if (val >= 1_000_000) return `: x${(val / 1_000_000).toFixed(1)}M`;
+                if (val >= 1_000) return `: x${(val / 1_000).toFixed(1)}K`;
+                return `: x${val}`;
+            }
+            function renderStock(stockData) {
+                stockContainer.innerHTML = '';
+                const stockTypes = ['gearStock', 'seedsStock', 'eggStock', 'honeyStock', 'cosmeticsStock'];
+                const cardThemes = {
+                    gearStock: 'gear', seedsStock: 'seeds', eggStock: 'egg',
+                    honeyStock: 'honey', cosmeticsStock: 'cosmetics'
+                };
+                const iconMap = {
+                    gearStock: '🛠️', seedsStock: '🌱', eggStock: '🥚',
+                    honeyStock: '🍯', cosmeticsStock: '🎨'
+                };
+                stockTypes.forEach(stockKey => {
+                    const stockList = stockData[stockKey] || [];
+                    const card = document.createElement('div');
+                    const theme = cardThemes[stockKey];
+                    card.className = `card theme-${theme}`;
+                    card.dataset.category = stockKey;
+                    const name = stockKey.replace('Stock', '').replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
+                    
+                    const itemsHTML = stockList.length > 0
+                        ? stockList.map(item => `<li>- ${item.emoji ? item.emoji + " " : ""}${item.name}${formatValue(item.value)}</li>`).join('')
+                        : '<li>None.</li>';
+                    card.innerHTML = `
+                        <div class="card-header">
+                            <h2>${iconMap[stockKey]} ${name}</h2>
+                        </div>
+                        <div class="card-content">
+                            <ul class="items">${itemsHTML}</ul>
+                            <div class="timer-container" id="timer-${stockKey}">
+                                ⏳ Restock in: --h --m --s
+                            </div>
+                        </div>`;
+                    stockContainer.appendChild(card);
+                });
+                
+                applyFilter(currentFilter);
+            }
+            function getPHTime() {
+                const now = new Date();
+                return new Date(now.getTime() + now.getTimezoneOffset() * 60000 + PH_OFFSET);
+            }
+            function pad(n) {
+                return n < 10 ? "0" + n : n;
+            }
+            function getCountdown(target) {
+                const now = getPHTime();
+                const msLeft = target.getTime() - now.getTime();
+                if (msLeft <= 0) return "00h 00m 00s";
+                const h = Math.floor(msLeft / 3.6e6);
+                const m = Math.floor((msLeft % 3.6e6) / 6e4);
+                const s = Math.floor((msLeft % 6e4) / 1000);
+                return `${pad(h)}h ${pad(m)}m ${pad(s)}s`;
+            }
+            function getNextRestocks() {
+                const now = getPHTime();
+                const timers = {};
+                const nextEgg = new Date(now);
+                nextEgg.setMinutes(now.getMinutes() < 30 ? 30 : 0, 0, 0);
+                if (now.getMinutes() >= 30) nextEgg.setHours(now.getHours() + 1);
+                timers.eggStock = getCountdown(nextEgg);
+                const next5 = new Date(now);
+                const nextM = Math.ceil((now.getMinutes() + (now.getSeconds() > 0 ? 1 : 0)) / 5) * 5;
+                next5.setMinutes(nextM === 60 ? 0 : nextM, 0, 0);
+                if (nextM === 60) next5.setHours(now.getHours() + 1);
+                timers.gearStock = timers.seedsStock = getCountdown(next5);
+                const nextHour = new Date(now);
+                nextHour.setHours(now.getHours() + 1, 0, 0, 0);
+                timers.honeyStock = getCountdown(nextHour);
+                const next7 = new Date(now);
+                const totalHours = now.getHours() + now.getMinutes() / 60 + now.getSeconds() / 3600;
+                const next7h = Math.ceil(totalHours / 7) * 7;
+                next7.setHours(next7h, 0, 0, 0);
+                timers.cosmeticsStock = getCountdown(next7);
+                return timers;
+            }
+            function startOrUpdateGlobalTimer() {
+                if (globalTimerInterval) clearInterval(globalTimerInterval);
+                
+                globalTimerInterval = setInterval(() => {
+                    const restocks = getNextRestocks();
+                    Object.keys(restocks).forEach(stockKey => {
+                        const timerEl = document.getElementById(`timer-${stockKey}`);
+                        if(timerEl) {
+                            timerEl.innerHTML = `⏳ Restock in: ${restocks[stockKey]}`;
+                        }
+                    });
+                }, 1000);
+            }
+            function applyFilter(target) {
+                if(target === 'home') return;
+                document.querySelectorAll('.stock-grid .card').forEach(card => {
+                    card.classList.toggle('hidden', card.dataset.category !== target);
+                });
+            }
+            
+            function showNotification(message) {
+                notificationMessage.textContent = message;
+                notification.classList.add('show');
+                setTimeout(() => { notification.classList.remove('show'); }, 3000);
+            }
+            
+            navbar.addEventListener('click', (e) => {
+                const item = e.target.closest('.nav-item');
+                if (!item) return;
+                
+                currentFilter = item.dataset.target;
+                
+                const isHome = currentFilter === 'home';
+                weatherSection.classList.toggle('active', isHome);
+                stockSection.classList.toggle('active', !isHome);
+                if (!isHome) {
+                    applyFilter(currentFilter);
+                }
+                
+                navbar.querySelector('.nav-item.active')?.classList.remove('active');
+                item.classList.add('active');
+            });
+            
+            refreshBtn.addEventListener('click', fetchData);
+            applyTheme(currentTheme);
+            fetchData();
+        });
+    </script>
 </body>
 </html>
