@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+    <title>Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <style>
+        /* --- NEW: Light & Dark Mode Color Themes --- */
+        :root {
+            /* Dark Mode (Default) */
+            --bg-color: #121212;
+            --card-bg: rgba(28, 28, 30, 0.75);
+            --navbar-bg: rgba(28, 28, 30, 0.7);
+            --text-primary: #EAEAEA;
+            --text-secondary: #A0A0A0;
+            --accent-color: #0A84FF;
+            --shadow-color: rgba(0, 0, 0, 0.2);
+            --border-color: rgba(255, 255, 255, 0.1);
+            --skeleton-color-1: rgba(255, 255, 255, 0.05);
+            --skeleton-color-2: rgba(255, 255, 255, 0.08);
+        }
+        html.light-mode {
+            /* Light Mode Overrides */
+            --bg-color: #F4F6F8;
+            --card-bg: rgba(255, 255, 255, 0.75);
+            --navbar-bg: rgba(255, 255, 255, 0.7);
+            --text-primary: #121212;
+            --text-secondary: #555;
+            --accent-color: #007AFF;
+            --shadow-color: rgba(0, 0, 0, 0.07);
+            --border-color: rgba(0, 0, 0, 0.05);
+            --skeleton-color-1: #e9ecef;
+            --skeleton-color-2: #f8f9fa;
+        }
+
+        @keyframes animated-gradient { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+        @keyframes pulse-bg { 0% { background-color: var(--skeleton-color-1); } 50% { background-color: var(--skeleton-color-2); } 100% { background-color: var(--skeleton-color-1); } }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes emoji-breathe { 0% { transform: scale(1); } 50% { transform: scale(1.08); } 100% { transform: scale(1); } }
+        @keyframes active-glow { from { box-shadow: 0 0 12px -2px var(--accent-color); } to { box-shadow: 0 0 12px 4px var(--accent-color); } }
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+        /* Global Styles & Transitions */
+        html {
+            transition: background-color 0.4s ease;
+            background-color: var(--bg-color);
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding: 24px 20px 120px 20px;
+            color: var(--text-primary);
+            transition: color 0.4s ease;
+        }
+        body::before { /* Animated background element */
+            content: '';
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab);
+            background-size: 400% 400%;
+            animation: animated-gradient 25s ease infinite;
+            z-index: -1;
+            opacity: 0.5;
+            transition: opacity 0.4s ease;
+        }
+        html.light-mode body::before { opacity: 1; }
+        main { max-width: 500px; margin: 0 auto; }
+        .content-section { display: none; animation: fadeIn 0.4s ease; }
+        .content-section.active { display: block; }
+        
+        /* Widgets & Cards */
+        .weather-card, .card, .update-notes-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            box-shadow: 0 4px 16px var(--shadow-color);
+            transition: background-color 0.4s ease, border-color 0.4s ease;
+        }
+        .weather-card { padding: 0; background: none; box-shadow: none; border: none; }
+        .weather-header { background: linear-gradient(135deg, #6a82fb 0%, #fc5c7d 100%); border-radius: var(--border-radius); padding: 24px; color: white; box-shadow: 0 10px 25px rgba(106, 130, 251, 0.3); text-align: center; }
+        .weather-header .weather-icon { font-size: 4rem; margin-bottom: 16px; animation: emoji-breathe 4s ease-in-out infinite; display: inline-block; }
+        .weather-header h1 { margin: 0 0 8px 0; font-size: 1.75rem; font-weight: 700; }
+        .weather-header .description { font-size: 1rem; line-height: 1.5; opacity: 0.9; max-width: 40ch; margin: 0 auto; }
+        .weather-details { display: grid; grid-template-columns: 1fr; gap: 12px; margin-top: 12px; }
+        .detail-item { background: var(--card-bg); border-radius: 12px; padding: 12px 16px; display: flex; align-items: center; gap: 12px; border: 1px solid var(--border-color); transition: background-color 0.4s ease, border-color 0.4s ease; }
+        .detail-item i { color: var(--accent-color); font-size: 1.2rem; }
+        .detail-item .label { font-weight: 600; font-size: 0.9rem; color: var(--text-primary); }
+        .detail-item .value { font-size: 0.9rem; color: var(--text-secondary); }
+        .weather-footer { text-align: center; font-size: 0.8rem; color: var(--text-secondary); margin-top: 16px; }
+
+        .update-notes-card { margin-top: 20px; padding: 20px; }
+        .update-notes-card h2 { margin: 0 0 12px 0; font-size: 1.2rem; display: flex; align-items: center; gap: 10px; color: var(--text-primary); }
+        .update-notes-card ul { list-style: none; padding: 0; margin: 0; }
+        .update-notes-card li { padding: 8px 0; font-size: 0.95rem; border-bottom: 1px solid var(--border-color); color: var(--text-secondary); }
+        .update-notes-card li:last-child { border-bottom: none; }
+        .update-notes-card .new-badge { font-size: 0.7rem; background: var(--accent-color); color: white; padding: 2px 6px; border-radius: 6px; }
+
+        .stock-grid { display: grid; grid-template-columns: 1fr; gap: 20px; }
+        .card.hidden { display: none !important; }
+        .card-header { display: flex; align-items: center; gap: 12px; padding: 16px 20px; color: white; background-color: var(--accent-color-theme, var(--text-secondary)); position: relative; border-bottom: 1px solid rgba(255, 255, 255, 0.3); }
+        .card-header::after { content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0; background-image: var(--texture); background-size: cover; opacity: 0.08; }
+        .card-header i, .card-header h2 { z-index: 1; }
+        .card .items li { padding: 10px 5px; font-weight: 500; border-bottom: 1px solid var(--border-color); transition: background-color 0.2s ease; }
+        .card .items li:hover { background-color: rgba(128, 128, 128, 0.1); }
+        .theme-seeds, .theme-seed_stock { --accent-color-theme: #2E8B57; /* textures etc. */ }
+        .theme-egg_stock { --accent-color-theme: #FFA726; /* ... */ }
+        .theme-honey_stock { --accent-color-theme: #FFB300; /* ... */ }
+        .theme-cosmetics_stock { --accent-color-theme: #EC407A; /* ... */ }
+        .card.theme-seeds .card-header, .card.theme-seed_stock .card-header, .card.theme-egg_stock .card-header, .card.theme-honey_stock .card-header, .card.theme-cosmetics_stock .card-header { background-color: var(--accent-color-theme); }
+        
+        .skeleton { animation: pulse-bg 1.5s infinite; border-radius: var(--border-radius); }
+        .skeleton.weather-card { height: 450px; width: 100%; }
+        .skeleton.card { height: 200px; width: 100%; }
+
+        .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: var(--navbar-bg); backdrop-filter: blur(12px); border-top: 1px solid var(--border-color); display: flex; justify-content: space-around; padding: 10px 0; z-index: 1000; transition: background-color 0.4s ease, border-color 0.4s ease; }
+        .nav-item { display: flex; flex-direction: column; align-items: center; gap: 4px; cursor: pointer; color: var(--text-secondary); transition: all 0.3s ease; font-size: 0.7rem; font-weight: 500; padding: 4px 8px; border-radius: 8px; }
+        .nav-item i { font-size: 1.4rem; }
+        .nav-item.active { color: var(--accent-color); animation: active-glow 1.5s alternate infinite ease-in-out; }
+        .app-footer { text-align: center; font-size: 0.8rem; color: var(--text-secondary); padding: 40px 20px 0 20px; transition: color 0.4s ease; }
+
+        .theme-toggle, .refresh-fab { position: fixed; right: 20px; width: 45px; height: 45px; background: var(--card-bg); color: var(--text-primary); border: 1px solid var(--border-color); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; box-shadow: var(--shadow-soft); cursor: pointer; transition: all 0.3s ease; z-index: 999; }
+        .theme-toggle { top: 20px; }
+        .refresh-fab { bottom: 85px; background: var(--accent-color); color: white; border: none; font-size: 1.2rem; }
+        .refresh-fab.loading .fa-rotate { animation: spin 1s linear infinite; }
+        .refresh-fab:disabled { background-color: #999; cursor: not-allowed; transform: scale(1); }
+        .notification { position: fixed; top: 20px; left: 50%; transform: translate(-50%, -150%); display: flex; align-items: center; gap: 10px; padding: 10px 20px; background-color: rgba(40, 40, 40, 0.8); backdrop-filter: blur(10px); color: white; border-radius: 50px; font-size: 0.9rem; font-weight: 500; z-index: 9999; transition: transform 0.4s ease-in-out; }
+        .notification.show { transform: translate(-50%, 0); }
+        .notification i { color: #34C759; }
+
+    </style>
+</head>
+<body>
+    <div id="notification" class="notification"><i id="notificationIcon" class="fa-solid fa-check-circle"></i><span id="notificationMessage"></span></div>
+    <button class="theme-toggle" id="themeToggleBtn" aria-label="Toggle Theme"></button>
+    <button class="refresh-fab" id="refreshBtn" aria-label="Refresh Data"><i class="fa-solid fa-rotate"></i></button>
+
+    <main>
+        <div id="weatherSection" class="content-section active">
+            <div class="skeleton weather-card"></div>
+        </div>
+        <div id="stockSection" class="content-section">
+            <div class="stock-grid" id="stockContainer">
+                <div class="skeleton card"></div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="app-footer"><p>&copy; 2025 Sunnel John Rebano | v3.0 Final</p></footer>
+
+    <nav class="bottom-nav" id="navbar">
+        <div class="nav-item active" data-target="home"><i class="fa-solid fa-house"></i><span>Home</span></div>
+        <div class="nav-item" data-target="seed"><i class="fa-solid fa-seedling"></i><span>Seeds</span></div>
+        <div class="nav-item" data-target="egg"><i class="fa-solid fa-egg"></i><span>Egg</span></div>
+        <div class="nav-item" data-target="honey"><i class="fa-solid fa-jar"></i><span>Honey</span></div>
+        <div class="nav-item" data-target="cosmetics"><i class="fa-solid fa-wand-magic-sparkles"></i><span>Cosmetics</span></div>
+    </nav>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const docElement = document.documentElement;
+            const themeToggleBtn = document.getElementById('themeToggleBtn');
+            const refreshBtn = document.getElementById('refreshBtn');
+            const navbar = document.getElementById('navbar');
+            const stockContainer = document.getElementById('stockContainer');
+            const weatherSection = document.getElementById('weatherSection');
+            const stockSection = document.getElementById('stockSection');
+            const notification = document.getElementById('notification');
+            const notificationMessage = document.getElementById('notificationMessage');
+            const API_BASE = 'https://growagardenstock.vercel.app/api';
+            let currentFilter = 'home';
+
+            // --- ESSENTIAL FUNCTION: Theme Management ---
+            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            let currentTheme = localStorage.getItem('theme') || (prefersDark ? 'dark' : 'light');
+
+            function applyTheme(theme) {
+                localStorage.setItem('theme', theme);
+                currentTheme = theme;
+                if (theme === 'light') {
+                    docElement.classList.add('light-mode');
+                    themeToggleBtn.innerHTML = '<i class="fa-solid fa-moon"></i>';
+                } else {
+                    docElement.classList.remove('light-mode');
+                    themeToggleBtn.innerHTML = '<i class="fa-solid fa-sun"></i>';
+                }
+            }
+
+            themeToggleBtn.addEventListener('click', () => {
+                applyTheme(currentTheme === 'light' ? 'dark' : 'light');
+            });
+
+            // --- ESSENTIAL FUNCTION: Core Data Fetching ---
+            async function fetchData() {
+                refreshBtn.disabled = true;
+                refreshBtn.classList.add('loading');
+                try {
+                    await Promise.all([fetchGameWeather(), fetchStock()]);
+                    showNotification('Data Refreshed');
+                } catch (error) {
+                    console.error("Failed to refresh data:", error);
+                    showNotification('Failed to refresh data', 'error');
+                } finally {
+                    refreshBtn.disabled = false;
+                    refreshBtn.classList.remove('loading');
+                }
+            }
+            
+            async function fetchGameWeather() {
+                const response = await fetch(`${API_BASE}/weather`);
+                if (!response.ok) throw new Error('Weather fetch failed');
+                const data = await response.json();
+                renderGameWeather(data);
+            }
+
+            function renderGameWeather(data) {
+                const detailsHTML = `
+                    <div class="detail-item"><i class="fa-solid fa-leaf"></i><div><div class="label">Crop Bonus</div><div class="value">${data.cropBonuses}</div></div></div>
+                    <div class="detail-item"><i class="fa-solid fa-gem"></i><div><div class="label">Rarity</div><div class="value">${data.rarity}</div></div></div>
+                    ${(data.mutations && data.mutations.length > 0) ? `<div class="detail-item"><i class="fa-solid fa-dna"></i><div><div class="label">Mutations</div><div class="value">${data.mutations.join(', ')}</div></div></div>` : ''}`;
+            
+                const updateNotesHTML = `
+                    <div class="update-notes-card">
+                        <h2><i class="fa-solid fa-scroll"></i> Latest Updates</h2>
+                        <ul>
+                            <li><span class="new-badge">NEW</span> Dark Mode has been added!</li>
+                            <li>Manual refresh button is now available.</li>
+                            <li>Weather panel now shows more details.</li>
+                        </ul>
+                    </div>`;
+
+                const weatherCardHTML = `
+                    <div class="weather-card">
+                        <div class="weather-header"><div class="weather-icon">${data.icon}</div><h1>${data.currentWeather}</h1><p class="description">${data.description}</p></div>
+                        <div class="weather-details">${detailsHTML}</div>
+                        <div class="weather-footer"><span>${timeAgo(data.updatedAt)}</span></div>
+                    </div>
+                    ${updateNotesHTML}`;
+                weatherSection.innerHTML = weatherCardHTML;
+            }
+
+            // --- ESSENTIAL FUNCTION: Stock Logic ---
+            async function fetchStock() {
+                const response = await fetch(`${API_BASE}/stock/all`);
+                if (!response.ok) throw new Error('Stock fetch failed');
+                const stocks = await response.json();
+                renderStock(stocks);
+            }
+
+            function renderStock(stocks) {
+                stockContainer.innerHTML = '';
+                Object.keys(stocks).forEach((apiKey, index) => {
+                    const stockItem = stocks[apiKey];
+                    const themeClass = `theme-${apiKey.toLowerCase()}`;
+                    const card = document.createElement('div');
+                    card.className = `card ${themeClass}`;
+                    card.dataset.category = apiKey;
+                    card.style.animation = `fadeIn 0.5s ease-out ${index * 60}ms forwards`;
+                    card.style.opacity = '0';
+                    const itemsHTML = stockItem.items.length > 0 ? stockItem.items.map(item => `<li>${item.name || 'Unknown Item'}</li>`).join('') : '<li>No items in stock</li>';
+                    card.innerHTML = `
+                        <div class="card-header"><i class="fa-solid fa-box"></i><h2>${stockItem.name}</h2></div>
+                        <div class="card-content">
+                            <ul class="items">${itemsHTML}</ul>
+                            <div class="card-footer"><span>Updated: ${new Date(stockItem.last_updated).toLocaleTimeString()}</span></div>
+                        </div>`;
+                    stockContainer.appendChild(card);
+                });
+                applyFilter(currentFilter);
+            }
+
+            // --- ESSENTIAL FUNCTION: Filtering Logic ---
+            function applyFilter(target) {
+                if (target === 'home') {
+                    stockSection.classList.remove('active');
+                    weatherSection.classList.add('active');
+                } else {
+                    weatherSection.classList.remove('active');
+                    stockSection.classList.add('active');
+                    document.querySelectorAll('.stock-grid .card').forEach(card => {
+                        const isVisible = card.dataset.category.startsWith(target);
+                        card.classList.toggle('hidden', !isVisible);
+                    });
+                }
+            }
+            
+            // --- ESSENTIAL UTILITY FUNCTIONS ---
+            function showNotification(message, type = 'success') {
+                notificationMessage.textContent = message;
+                notification.classList.add('show');
+                setTimeout(() => {
+                    notification.classList.remove('show');
+                }, 3000);
+            }
+
+            function timeAgo(timestamp) {
+                const now = new Date();
+                const past = new Date(timestamp);
+                const seconds = Math.floor((now - past) / 1000);
+                if (seconds < 60) return `Updated just now`;
+                const minutes = Math.floor(seconds / 60);
+                if (minutes < 60) return `Updated ${minutes} minute${minutes > 1 ? 's' : ''} ago`;
+                const hours = Math.floor(minutes / 60);
+                return `Updated ${hours} hour${hours > 1 ? 's' : ''} ago`;
+            }
+
+            // --- ESSENTIAL EVENT LISTENERS ---
+            navbar.addEventListener('click', (e) => {
+                const item = e.target.closest('.nav-item');
+                if (!item) return;
+                currentFilter = item.dataset.target;
+                navbar.querySelector('.nav-item.active')?.classList.remove('active');
+                item.classList.add('active');
+                applyFilter(currentFilter);
+            });
+            refreshBtn.addEventListener('click', fetchData);
+
+            // --- Initial Load ---
+            applyTheme(currentTheme);
+            fetchData();
+            setInterval(fetchData, 300000); // Auto-refresh every 5 minutes
+        });
+    </script>
+</body>
+</html>
