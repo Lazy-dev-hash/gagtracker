@@ -42,7 +42,6 @@
         @keyframes active-glow { from { box-shadow: 0 0 12px -2px var(--accent-color); } to { box-shadow: 0 0 12px 4px var(--accent-color); } }
         @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
         
-        /* --- NEW: Pulsing Border Animation --- */
         @keyframes pulse-border {
             0%, 100% {
                 box-shadow: 0 0 8px 0px hsla(var(--accent-color-theme-hsl), 0.4), 0 4px 16px var(--shadow-color);
@@ -112,7 +111,6 @@
         .card {
             border-radius: var(--border-radius);
             overflow: hidden; 
-             /* --- NEW: Applying the pulsing border animation --- */
             animation: pulse-border 4s ease-in-out infinite;
         }
 
@@ -166,7 +164,6 @@
             transition: width 1s linear;
         }
        
-        /* --- NEW: Added HSL values for the animation --- */
         .theme-seeds, .theme-seed_stock { --accent-color-theme: #2E8B57; --accent-color-theme-hsl: 147, 50%, 36%; }
         .theme-egg, .theme-egg_stock { --accent-color-theme: #FFA726; --accent-color-theme-hsl: 36, 100%, 57%; }
         .theme-honey, .theme-honey_stock { --accent-color-theme: #FFB300; --accent-color-theme-hsl: 42, 100%, 50%; }
@@ -213,7 +210,7 @@
         </div>
     </main>
 
-    <footer class="app-footer"><p>&copy; 2025 Sunnel John Rebano | v3.9</p></footer>
+    <footer class="app-footer"><p>&copy; 2025 Sunnel John Rebano | v3.9.1</p></footer>
 
     <nav class="bottom-nav" id="navbar">
         <div class="nav-item active" data-target="home"><i class="fa-solid fa-house"></i><span>Home</span></div>
@@ -278,24 +275,25 @@
             async function fetchAndRenderAllData() {
                 const proxy = 'https://corsproxy.io/?';
 
+                // --- MODIFIED: Swapped Honey source for reliability ---
                 const [
                     gearSeedRes,
                     eggRes,
                     weatherRes,
-                    honeyRes,
+                    allStockRes, // Using this for Honey
                     cosmeticsRes,
                 ] = await Promise.all([
                     fetch(`${proxy}https://growagardenstock.com/api/stock?type=gear-seeds`).catch(e => ({ ok: false, e })),
                     fetch(`${proxy}https://growagardenstock.com/api/stock?type=egg`).catch(e => ({ ok: false, e })),
                     fetch(`${proxy}https://growagardenstock.com/api/stock/weather`).catch(e => ({ ok: false, e })),
-                    fetch(`${proxy}http://65.108.103.151:22377/api/stocks?type=honeyStock`).catch(e => ({ ok: false, e })),
+                    fetch(`https://growagardenstock.vercel.app/api/stock/all`).catch(e => ({ ok: false, e })),
                     fetch(`${proxy}https://growagardenstock.com/api/special-stock?type=cosmetics`).catch(e => ({ ok: false, e })),
                 ]);
 
                 const gearSeedData = gearSeedRes.ok ? await gearSeedRes.json() : { gear: [], seeds: [], updatedAt: Date.now() };
                 const eggData = eggRes.ok ? await eggRes.json() : { egg: [], updatedAt: Date.now() };
                 const weatherData = weatherRes.ok ? await weatherRes.json() : {};
-                const honeyData = honeyRes.ok ? await honeyRes.json() : { honeyStock: [] };
+                const allStockData = allStockRes.ok ? await allStockRes.json() : {}; // Parse honey source
                 const cosmeticsData = cosmeticsRes.ok ? await cosmeticsRes.json() : { cosmetics: [], updatedAt: Date.now() };
                 
                 const stockCards = {
@@ -316,7 +314,8 @@
                     },
                     honey: {
                         name: 'Honey Stock',
-                        items: honeyData.honeyStock || [],
+                        // --- MODIFIED: Get honey items from the reliable source ---
+                        items: allStockData.honey_stock?.items || [],
                         timerConfig: { type: 'honey' }
                     },
                     cosmetics: {
@@ -348,10 +347,10 @@
                     <div class="update-notes-card">
                         <h2><i class="fa-solid fa-scroll"></i> Latest Updates</h2>
                         <ul>
-                            <li><span class="new-badge">NEW</span> Added pulsing border animation to cards.</li>
-                            <li>Auto Refresh interval is now 20 seconds.</li>
+                            <li><span class="new-badge">FIX</span> Switched Honey data source for better reliability.</li>
+                            <li>Pulsing border animation on all stock cards.</li>
+                            <li>Auto Refresh interval is 20 seconds.</li>
                             <li>Smart-refresh when timers hit zero.</li>
-                            <li>Timers are 1:1 with the official script logic.</li>
                         </ul>
                     </div>`;
                 
@@ -511,7 +510,7 @@
 
             applyTheme(currentTheme);
             fetchData();
-            setInterval(fetchData, 20000); // 20-second interval
+            setInterval(fetchData, 20000);
         });
     </script>
 </body>
